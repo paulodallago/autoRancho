@@ -11,6 +11,17 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from datetime import date, timedelta, datetime
 
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+import PyQt5.QtWidgets
+
+qtCreatorFile = "main.ui"  # Esse é o arquivo .ui gerado pelo QtDesigner
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+
+today = date.today()
+workDay = today + timedelta(days=2)
+day = workDay.weekday()
+
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 SAMPLE_SPREADSHEET_ID = (
     "11K0FDN0-8tqhjSUq1Lg8KZmNft0O9hZCtJ4tc0vmu6o"  # ID da planilha google
@@ -31,6 +42,9 @@ def auth():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
     return creds
+
+
+creds = auth()
 
 
 def main(creds):
@@ -71,7 +85,6 @@ def main(creds):
             for line in file:
                 name, date, comment = line.strip().split(" - ")
                 lista.append((name, date, comment))
-                print(comment)
 
             for row in ws:
                 for cell in row:
@@ -90,6 +103,9 @@ def main(creds):
 
             ws.cell(row=3, column=1, value=workDay)
             wb.save("output/ARRANCHAMENTO " + workDay.strftime("%d.%m.%Y") + ".xlsx")
+
+            path = os.path.realpath("output")
+            os.startfile(path)
 
     except HttpError as err:
         print(err)
@@ -115,16 +131,27 @@ def setRange():
         return "L3:N33"
 
 
-today = date.today()
-workDay = today + timedelta(days=2)
-day = workDay.weekday()
+class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        QtWidgets.QMainWindow.__init__(self)
+        Ui_MainWindow.__init__(self)
+        self.setupUi(self)
 
-creds = auth()
+        self.pushButton.clicked.connect(self.onClick)
 
-if today.weekday() != 4:
-    main(creds)
-else:
-    for i in range(1, 4):
-        main(creds)
-        workDay += timedelta(days=1)
-        day = workDay.weekday()
+    def onClick(self):
+
+        if today.weekday() != 4:
+            main(creds)
+        else:
+            for i in range(1, 4):
+                main(creds)
+                workDay += timedelta(days=1)
+                day = workDay.weekday()
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = MyWindow()
+    window.show()
+    sys.exit(app.exec_())
