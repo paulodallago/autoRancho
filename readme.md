@@ -1,0 +1,1 @@
+Esse projeto foi elaborado durante meu serviço militar obrigatório, automatizando a leitura de uma planilha de acesso público do Google Sheets, para a obtenção de dados para o preenchimento de uma planilha .xlsx
